@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "python"
+version = "0.1.0"
+description = ""
+authors = ["Janael Pinheiro <ajanaelpinheiro@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pika = "^1.3.1"
+tenacity = "^8.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
