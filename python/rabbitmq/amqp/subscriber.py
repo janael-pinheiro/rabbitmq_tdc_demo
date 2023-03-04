@@ -1,20 +1,32 @@
 from dataclasses import dataclass
 from logging import Logger
-from pika import URLParameters
-from pika.exceptions import ConnectionClosedByBroker
+from os import environ
+from typing import Dict, Any
+from pika import URLParameters, BasicProperties, spec
 from pika.channel import Channel
+from pika.exceptions import ConnectionClosedByBroker
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
 from tenacity.wait import wait_exponential
-from os import environ
 
-from rabbitmq.amqp.connection import (
-    AMQPConnection,
-    AMQPChannel)
+from rabbitmq.amqp.connection import AMQPChannel, AMQPConnection
+from rabbitmq.amqp.constants import AUTO_ACK, MULTIPLE, REQUEUE
 
 
-def callback(channel, method, properties, body):
-    print(body)
+def callback(
+        channel: Channel,
+        method: spec.Basic.Deliver,
+        properties: BasicProperties,
+        body: Dict[str, Any]):
+    try:
+        print(body)
+    except Exception as _:
+        channel.basic_nack(
+            delivery_tag=method.delivery_tag,
+            multiple=MULTIPLE,
+            requeue=REQUEUE)
+    else:
+        channel.basic_ack(delivery_tag=method.delivery_tag, multiple=MULTIPLE)
 
 
 @dataclass
@@ -41,7 +53,7 @@ class Subscriber:
         self.channel.basic_consume(
             queue=self.queue_name,
             on_message_callback=callback,
-            auto_ack=True)
+            auto_ack=AUTO_ACK)
         try:
             self.channel.start_consuming()
         except KeyboardInterrupt:
