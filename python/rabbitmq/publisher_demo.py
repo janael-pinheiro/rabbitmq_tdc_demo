@@ -1,11 +1,12 @@
-from rabbitmq.amqp.publisher import AMQPPublisher
-from rabbitmq.amqp_demo import (create_channel, create_connection,
-                                create_exchange, create_queue)
-from rabbitmq.utils.logger import logger_factory
 from time import sleep
 
 from pika import BasicProperties
 from pika.delivery_mode import DeliveryMode
+
+from rabbitmq.amqp.publisher import AMQPPublisher
+from rabbitmq.amqp_demo import (create_channel, create_connection,
+                                create_exchange, create_queue)
+from rabbitmq.utils.logger import logger_factory
 
 
 def main() -> None:

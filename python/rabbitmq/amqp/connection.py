@@ -3,7 +3,11 @@ from dataclasses import dataclass
 from pika import BlockingConnection
 from pika.channel import Channel
 from pika.connection import Parameters
-from rabbitmq.amqp.constants import DURABLE, AUTO_DELETE, EXCLUSIVE
+
+from rabbitmq.amqp.constants import (AUTO_DELETE, DURABLE, EXCLUSIVE,
+                                     GLOBAL_PREFETCH, PREFETCH_COUNT,
+                                     PREFETCH_SIZE)
+
 
 @dataclass
 class AMQPConnection:
@@ -19,6 +23,10 @@ class AMQPChannel:
     def create(self) -> Channel:
         channel = self.connection.channel()
         channel.confirm_delivery()
+        channel.basic_qos(
+            prefetch_size=PREFETCH_SIZE,
+            prefetch_count=PREFETCH_COUNT,
+            global_qos=GLOBAL_PREFETCH)
         return channel
 
 

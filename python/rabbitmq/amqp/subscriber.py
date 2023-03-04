@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from logging import Logger
 from os import environ
-from typing import Dict, Any
-from pika import URLParameters, BasicProperties, spec
+from typing import Any, Dict
+
+from pika import BasicProperties, URLParameters, spec
 from pika.channel import Channel
 from pika.exceptions import ConnectionClosedByBroker
 from tenacity import retry
