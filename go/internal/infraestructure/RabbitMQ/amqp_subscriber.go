@@ -46,7 +46,7 @@ func (as *amqpSubscriber) Subscribe() error {
 
 func (as *amqpSubscriber) reconnect() {
 reconnection:
-	for err := range as.connection.getNotification() {
+	for err := range as.connection.getClosedNotification() {
 		fmt.Println("Reconnecting...")
 		if err != nil {
 			as.connection.connect()

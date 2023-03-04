@@ -11,17 +11,19 @@ import (
 )
 
 type amqpPublisher struct {
-	BrokerURL           string
-	connection          connection
-	exchange            string
-	notificationChannel chan *amqp.Error
+	BrokerURL             string
+	connection            connection
+	exchange              string
+	notificationChannel   chan *amqp.Error
+	notificationPublished chan amqp.Confirmation
 }
 
 func NewAMQPPublisher(brokerURL, exchangeName string, connection connection) (*amqpPublisher, error) {
 	publisher := new(amqpPublisher)
 	publisher.connection = connection
 	publisher.exchange = exchangeName
-	publisher.notificationChannel = publisher.connection.getNotification()
+	publisher.notificationChannel = publisher.connection.getClosedNotification()
+	publisher.notificationPublished = publisher.connection.getPublishedNotification()
 	return publisher, nil
 }
 
@@ -39,14 +41,12 @@ func (pub *amqpPublisher) Publish(message entities.Message) error {
 		}
 	default:
 	}
-
-	if !pub.connection.getChannel().IsClosed() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		err = pub.connection.getChannel().PublishWithContext(ctx, pub.exchange, "", MANDATORY, IMMEDIATE, amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        data})
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err = pub.connection.getChannel().PublishWithContext(ctx, pub.exchange, "", MANDATORY, IMMEDIATE, amqp.Publishing{
+		ContentType: "text/plain",
+		Body:        data})
+	pub.getPublishedConfirmation()
 	return err
 }
 
@@ -54,5 +54,11 @@ func (pub *amqpPublisher) reconnect() {
 	fmt.Println("Reconnecting...")
 	pub.connection.connect()
 	pub.connection.createChannel()
-	pub.notificationChannel = pub.connection.getNotification()
+	pub.notificationChannel = pub.connection.getClosedNotification()
+	pub.notificationPublished = pub.connection.getPublishedNotification()
+}
+
+func (pub *amqpPublisher) getPublishedConfirmation() {
+	notification := <-pub.notificationPublished
+	fmt.Printf("Delivery tag: %d -- published: %t\n", notification.DeliveryTag, notification.Ack)
 }

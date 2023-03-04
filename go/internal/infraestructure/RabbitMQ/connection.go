@@ -7,19 +7,21 @@ import (
 type connection interface {
 	getChannel() *amqp.Channel
 	connect()
-	getNotification() chan *amqp.Error
+	getClosedNotification() chan *amqp.Error
+	getPublishedNotification() chan amqp.Confirmation
 	createChannel()
 }
 
 type amqpConnection struct {
-	url                string
-	connection         *amqp.Connection
-	channel            *amqp.Channel
-	exchangeName       string
-	exchangeType       string
-	queueName          string
-	routingKey         string
-	notifyCloseChannel chan *amqp.Error
+	url                    string
+	connection             *amqp.Connection
+	channel                *amqp.Channel
+	exchangeName           string
+	exchangeType           string
+	queueName              string
+	routingKey             string
+	notifyClosedChannel    chan *amqp.Error
+	notifyPublishedChannel chan amqp.Confirmation
 }
 
 func NewConnection(url, exchangeName, exchangeType, queueName, routingKey string) connection {
@@ -43,6 +45,9 @@ func (ac *amqpConnection) createChannel() {
 		panic(err)
 	}
 	ac.channel = channel
+	if err := ac.channel.Confirm(NO_WAIT); err == nil {
+		ac.notifyPublishedChannel = ac.channel.NotifyPublish(make(chan amqp.Confirmation))
+	}
 }
 
 func (ac *amqpConnection) getChannel() *amqp.Channel {
@@ -55,7 +60,7 @@ func (ac *amqpConnection) connect() {
 		panic(err)
 	}
 	ac.connection = connection
-	ac.notifyCloseChannel = ac.connection.NotifyClose(make(chan *amqp.Error))
+	ac.notifyClosedChannel = ac.connection.NotifyClose(make(chan *amqp.Error))
 }
 
 func (ac *amqpConnection) declareQueue() {
@@ -76,6 +81,10 @@ func (ac *amqpConnection) bindQueue() {
 	}
 }
 
-func (ac *amqpConnection) getNotification() chan *amqp.Error {
-	return ac.notifyCloseChannel
+func (ac *amqpConnection) getClosedNotification() chan *amqp.Error {
+	return ac.notifyClosedChannel
+}
+
+func (ac *amqpConnection) getPublishedNotification() chan amqp.Confirmation {
+	return ac.notifyPublishedChannel
 }
