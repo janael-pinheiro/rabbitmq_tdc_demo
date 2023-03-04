@@ -37,7 +37,11 @@ func (as *amqpSubscriber) Subscribe() error {
 		for message := range deliveries {
 			msg, err := as.unmarshal(message)
 			if err == nil {
-				as.handler.Handle(msg)
+				if err := as.handler.Handle(msg); err != nil {
+					message.Nack(MULTIPLE, REQUEUE)
+				} else {
+					message.Ack(MULTIPLE)
+				}
 			}
 		}
 	}()

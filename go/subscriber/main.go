@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	queueName := "test"
+	queueName := "go"
 	exchangeName := "demo"
 	exchangeType := "fanout"
 	routingKey := "123A"

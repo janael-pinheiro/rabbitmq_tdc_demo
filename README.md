@@ -3,7 +3,8 @@
 ## Demonstrated features
 - Automatic reconnection;
 - Publication confirmation;
-- Data preservation.
+- Data preservation;
+- Manual acknowledgment.
 
 ## RabbitMQ Docker
 ```

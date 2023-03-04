@@ -8,6 +8,8 @@ const (
 	EXCLUSIVE   = false
 	MANDATORY   = false
 	IMMEDIATE   = false
-	AUTO_ACK    = true
+	AUTO_ACK    = false
 	NO_LOCAL    = false
+	MULTIPLE    = false
+	REQUEUE     = true
 )
