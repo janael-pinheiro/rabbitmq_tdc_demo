@@ -4,6 +4,9 @@ from rabbitmq.amqp_demo import (create_channel, create_connection,
 from rabbitmq.utils.logger import logger_factory
 from time import sleep
 
+from pika import BasicProperties
+from pika.delivery_mode import DeliveryMode
+
 
 def main() -> None:
     SECONDS_BETWEEN_PUBLICATION: int = 1
@@ -15,11 +18,12 @@ def main() -> None:
     create_exchange(exchange_name, "fanout", channel)
     create_queue("python", channel, exchange_name, routing_key)
 
+    properties = BasicProperties(delivery_mode=DeliveryMode.Persistent)
     publisher = AMQPPublisher(
         channel=channel,
         exchange_name=exchange_name,
         routing_key=routing_key,
-        properties=None,
+        properties=properties,
         logger=logger)
 
     while True:

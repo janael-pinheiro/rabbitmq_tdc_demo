@@ -31,7 +31,7 @@ def create_queue(
         channel: Channel,
         exchange_name: str,
         routing_key: str) -> None:
-    queue = AMQPQueue(channel=channel, name=name)
+    queue = AMQPQueue(name=name, channel=channel)
     queue.declare()
     queue.bind(
         exchange_name=exchange_name,

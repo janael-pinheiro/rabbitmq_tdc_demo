@@ -1,7 +1,9 @@
 # RabbitMQ demo
 
 ## Demonstrated features
-- Automatic reconnection.
+- Automatic reconnection;
+- Publication confirmation;
+- Data preservation.
 
 ## RabbitMQ Docker
 ```

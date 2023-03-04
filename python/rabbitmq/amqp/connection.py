@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pika import BlockingConnection
 from pika.channel import Channel
 from pika.connection import Parameters
-
+from rabbitmq.amqp.constants import DURABLE, AUTO_DELETE, EXCLUSIVE
 
 @dataclass
 class AMQPConnection:
@@ -22,35 +22,34 @@ class AMQPChannel:
         return channel
 
 
+@dataclass
 class AMQPExchange:
-    def __init__(
-            self,
-            exchange_name: str,
-            exchange_type: str,
-            channel: Channel) -> None:
-        self.__name = exchange_name
-        self.__type = exchange_type
-        self.__channel = channel
+    exchange_name: str
+    exchange_type: str
+    channel: Channel
 
     def declare(self) -> None:
-        self.__channel.exchange_declare(self.__name, self.__type, durable=False, auto_delete=False)
-    
-    @property
-    def name(self) -> str:
-        return self.__name
+        self.channel.exchange_declare(
+            exchange=self.exchange_name,
+            exchange_type=self.exchange_type,
+            durable=DURABLE,
+            auto_delete=AUTO_DELETE)
 
 
+@dataclass
 class AMQPQueue:
-    def __init__(self, name: str, channel: Channel) -> None:
-        self.__name = name
-        self.__channel = channel
+    channel: Channel
+    name: str
 
     def declare(self) -> None:
-        self.__channel.queue_declare(self.__name)
+        self.channel.queue_declare(
+            queue=self.name,
+            durable=DURABLE,
+            exclusive=EXCLUSIVE,
+            auto_delete=AUTO_DELETE)
 
-    def bind(self, exchange_name: str, routing_key) -> None:
-        self.__channel.queue_bind(self.__name, exchange_name, routing_key=routing_key)
-
-    @property
-    def name(self) -> str:
-        return self.__name
+    def bind(self, exchange_name: str, routing_key: str) -> None:
+        self.channel.queue_bind(
+            queue=self.name,
+            exchange=exchange_name,
+            routing_key=routing_key)
