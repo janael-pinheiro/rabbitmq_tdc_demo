@@ -1,2 +1,8 @@
 # Python
 __pycache__/
+
+# Go
+*.test
+*.out
+*.exe
+*.so

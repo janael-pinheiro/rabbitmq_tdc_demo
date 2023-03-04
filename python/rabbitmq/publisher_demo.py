@@ -20,7 +20,7 @@ def main() -> None:
         routing_key=routing_key,
         properties=None)
     
-    publisher.publish(content="Hello world!")
+    publisher.publish(content='{"content": "Hello world!"}')
 
 if __name__ == "__main__":
     main()
