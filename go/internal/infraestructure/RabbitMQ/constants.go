@@ -1,7 +1,7 @@
 package rabbitmq
 
 const (
-	DURABLE     = false
+	DURABLE     = true
 	AUTO_DELETE = false
 	INTERNAL    = false
 	NO_WAIT     = false
