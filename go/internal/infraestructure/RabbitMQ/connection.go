@@ -1,6 +1,9 @@
 package rabbitmq
 
 import (
+	"os"
+	"strconv"
+
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -48,6 +51,11 @@ func (ac *amqpConnection) createChannel() {
 	if err := ac.channel.Confirm(NO_WAIT); err == nil {
 		ac.notifyPublishedChannel = ac.channel.NotifyPublish(make(chan amqp.Confirmation))
 	}
+	prefetchCount, err := strconv.Atoi(os.Getenv("PREFETCH_COUNT"))
+	if err == nil {
+		ac.channel.Qos(prefetchCount, PREFETCH_SIZE, GLOBAL_PREFETCH)
+	}
+
 }
 
 func (ac *amqpConnection) getChannel() *amqp.Channel {
