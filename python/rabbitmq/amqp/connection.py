@@ -1,7 +1,8 @@
-from pika import BlockingConnection
-from pika.connection import Parameters
-from pika.channel import Channel
 from dataclasses import dataclass
+
+from pika import BlockingConnection
+from pika.channel import Channel
+from pika.connection import Parameters
 
 
 @dataclass
@@ -16,7 +17,9 @@ class AMQPChannel:
     connection: BlockingConnection
 
     def create(self) -> Channel:
-        return self.connection.channel()
+        channel = self.connection.channel()
+        channel.confirm_delivery()
+        return channel
 
 
 class AMQPExchange:
@@ -30,7 +33,7 @@ class AMQPExchange:
         self.__channel = channel
 
     def declare(self) -> None:
-        self.__channel.exchange_declare(self.__name, self.__type, durable=True, auto_delete=False)
+        self.__channel.exchange_declare(self.__name, self.__type, durable=False, auto_delete=False)
     
     @property
     def name(self) -> str:
