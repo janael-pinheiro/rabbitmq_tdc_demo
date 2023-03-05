@@ -14,14 +14,21 @@ from rabbitmq.amqp.connection import AMQPChannel, AMQPConnection
 from rabbitmq.amqp.constants import AUTO_ACK, MULTIPLE, REQUEUE
 
 
+class MultipleTen(Exception):
+    ...
+
+
 def callback(
         channel: Channel,
         method: spec.Basic.Deliver,
         properties: BasicProperties,
         body: Dict[str, Any]):
     try:
+        # Simulates processing failure to send messages to the dead letter queue.
+        if method.delivery_tag % 10 == 0:
+            raise MultipleTen()
         print(body)
-    except Exception as _:
+    except MultipleTen:
         channel.basic_nack(
             delivery_tag=method.delivery_tag,
             multiple=MULTIPLE,

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Union
 
 from pika import BlockingConnection
 from pika.channel import Channel
@@ -48,13 +49,19 @@ class AMQPExchange:
 class AMQPQueue:
     channel: Channel
     name: str
+    dead_letter_exchange: Union[str, None] = None
 
     def declare(self) -> None:
+        arguments = None
+        if self.dead_letter_exchange:
+            arguments = arguments={"x-dead-letter-exchange": self.dead_letter_exchange}
         self.channel.queue_declare(
             queue=self.name,
             durable=DURABLE,
             exclusive=EXCLUSIVE,
-            auto_delete=AUTO_DELETE)
+            auto_delete=AUTO_DELETE,
+            arguments=arguments
+            )
 
     def bind(self, exchange_name: str, routing_key: str) -> None:
         self.channel.queue_bind(
