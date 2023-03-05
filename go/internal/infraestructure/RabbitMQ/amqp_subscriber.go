@@ -36,6 +36,11 @@ func (as *amqpSubscriber) Subscribe() error {
 		fmt.Println("Start consuming!")
 		for message := range deliveries {
 			msg, err := as.unmarshal(message)
+			// Simulates processing failure to send messages to the dead letter queue.
+			if message.DeliveryTag%10 == 0 {
+				message.Nack(MULTIPLE, REQUEUE)
+				continue
+			}
 			if err == nil {
 				if err := as.handler.Handle(msg); err != nil {
 					message.Nack(MULTIPLE, REQUEUE)

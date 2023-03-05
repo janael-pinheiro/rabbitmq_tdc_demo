@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -36,9 +37,9 @@ func NewConnection(url, exchangeName, exchangeType, queueName, routingKey string
 	conn.routingKey = routingKey
 	conn.connect()
 	conn.createChannel()
-	conn.declareExchange(conn.exchangeName, conn.exchangeType)
+	conn.declareExchange(exchangeName, exchangeType)
 	conn.declareQueue()
-	conn.bindQueue()
+	conn.bindQueue(queueName, exchangeName)
 	return conn
 }
 
@@ -72,18 +73,24 @@ func (ac *amqpConnection) connect() {
 }
 
 func (ac *amqpConnection) declareQueue() {
-	_, err := ac.channel.QueueDeclare(ac.queueName, DURABLE, AUTO_DELETE, EXCLUSIVE, NO_WAIT, nil)
-	if err != nil {
-		panic(err)
+	dead_letter_exchange := fmt.Sprintf("%s_dlx", ac.exchangeName)
+	dead_letter_queue := fmt.Sprintf("%s_dlq", ac.queueName)
+	arguments := amqp.Table{"x-dead-letter-exchange": dead_letter_exchange}
+	ac.declareExchange(dead_letter_exchange, ac.exchangeType)
+	_, queueErr := ac.channel.QueueDeclare(ac.queueName, DURABLE, AUTO_DELETE, EXCLUSIVE, NO_WAIT, arguments)
+	_, dlQueueErr := ac.channel.QueueDeclare(dead_letter_queue, DURABLE, AUTO_DELETE, EXCLUSIVE, NO_WAIT, nil)
+	if queueErr != nil || dlQueueErr != nil {
+		panic(queueErr)
 	}
+	ac.bindQueue(dead_letter_queue, dead_letter_exchange)
 }
 
 func (ac *amqpConnection) declareExchange(exchangeName, exchangeType string) error {
 	return ac.channel.ExchangeDeclare(exchangeName, exchangeType, DURABLE, AUTO_DELETE, INTERNAL, NO_WAIT, nil)
 }
 
-func (ac *amqpConnection) bindQueue() {
-	err := ac.channel.QueueBind(ac.queueName, ac.routingKey, ac.exchangeName, NO_WAIT, nil)
+func (ac *amqpConnection) bindQueue(queueName, exchangeName string) {
+	err := ac.channel.QueueBind(queueName, ac.routingKey, exchangeName, NO_WAIT, nil)
 	if err != nil {
 		panic(err)
 	}

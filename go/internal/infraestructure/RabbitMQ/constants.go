@@ -11,7 +11,7 @@ const (
 	AUTO_ACK        = false
 	NO_LOCAL        = false
 	MULTIPLE        = false
-	REQUEUE         = true
+	REQUEUE         = false
 	GLOBAL_PREFETCH = true
 	PREFETCH_SIZE   = 0
 )

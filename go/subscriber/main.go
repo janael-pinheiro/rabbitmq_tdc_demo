@@ -8,7 +8,7 @@ import (
 
 func main() {
 	queueName := "go"
-	exchangeName := "demo"
+	exchangeName := "go_demo"
 	exchangeType := "fanout"
 	routingKey := "123A"
 	consumerTag := uuid.NewString()
