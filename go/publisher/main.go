@@ -10,9 +10,13 @@ import (
 )
 
 func main() {
+	queueName := "go"
+	exchangeName := "go_demo"
+	exchangeType := "fanout"
+	routingKey := "123A"
 	broker_configuration := common.LoadBrokerConfiguration()
-	connection := rabbitmq.NewConnection(broker_configuration.URL, "demo", "fanout", "test", "123A")
-	publisher, err := rabbitmq.NewAMQPPublisher(broker_configuration.URL, "demo", connection)
+	connection := rabbitmq.NewConnection(broker_configuration.URL, exchangeName, exchangeType, queueName, routingKey)
+	publisher, err := rabbitmq.NewAMQPPublisher(broker_configuration.URL, exchangeName, connection)
 	if err != nil {
 		panic(err)
 	}
