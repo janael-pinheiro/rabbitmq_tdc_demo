@@ -39,6 +39,9 @@ public class BeanFactory {
     @Value("${rabbitmq.routingkey}")
     private String routingKey;
 
+    @Value("${spring.rabbitmq.listener.simple.prefetch}")
+    private int prefetchCount;
+
     @Bean
     public FanoutExchange createExchange() {
         return new FanoutExchange(exchange);
@@ -73,9 +76,10 @@ public class BeanFactory {
 
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(ConnectionFactory connectionFactory) {
-        final SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(createConverter());
+        factory.setPrefetchCount(this.prefetchCount);
         return factory;
     }
 
