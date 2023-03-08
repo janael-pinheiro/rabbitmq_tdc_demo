@@ -80,6 +80,7 @@ public class BeanFactory {
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(createConverter());
         factory.setPrefetchCount(this.prefetchCount);
+        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         return factory;
     }
 
