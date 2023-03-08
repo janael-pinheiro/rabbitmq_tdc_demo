@@ -1,2 +1,10 @@
 export AMQP_URL=amqp://guest:guest@localhost:5672
 export PREFETCH_COUNT=1000
+export HOST=localhost
+export VHOST=/
+export PORT=5672
+export USERNAME=guest
+export PASSWORD=guest
+export EXCHANGE=demo
+export QUEUE=java
+export ROUNTING_KEY=123A
