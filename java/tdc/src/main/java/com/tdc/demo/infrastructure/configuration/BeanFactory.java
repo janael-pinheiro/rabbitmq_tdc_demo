@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Configuration
 public class BeanFactory {
     @Value("${rabbitmq.host}")
@@ -36,24 +39,37 @@ public class BeanFactory {
     @Value("${rabbitmq.queue}")
     private String queueName;
 
-    @Value("${rabbitmq.routingkey}")
-    private String routingKey;
-
     @Value("${spring.rabbitmq.listener.simple.prefetch}")
     private int prefetchCount;
 
+    private static final boolean DURABLE = true;
+    private static final boolean AUTO_DELETE = false;
+    private static final boolean EXCLUSIVE = false;
     @Bean
     public FanoutExchange createExchange() {
-        return new FanoutExchange(exchange);
-    }
-    @Bean
-    public Queue createQueue(){
-        return new Queue(queueName);
+        return new FanoutExchange(exchange, DURABLE, AUTO_DELETE);
     }
 
     @Bean
-    public Binding createBinding(Queue queue, FanoutExchange exchange){
-        return BindingBuilder.bind(queue).to(exchange);
+    public FanoutExchange createDLExchange() { return new FanoutExchange(exchange+"_dlx", DURABLE, AUTO_DELETE);
+    }
+    @Bean
+    public Queue createQueue(){
+        Map arguments = new HashMap<>();
+        arguments.put("x-dead-letter-exchange", exchange+"_dlx");
+        return new Queue(queueName, DURABLE, EXCLUSIVE, AUTO_DELETE, arguments);
+    }
+
+    @Bean
+    public Queue createDLQueue() { return new Queue(queueName+"_dlq", DURABLE, EXCLUSIVE, AUTO_DELETE);}
+    @Bean
+    public Binding createBinding(){
+        return BindingBuilder.bind(createQueue()).to(createExchange());
+    }
+
+    @Bean
+    public Binding createDLBinding(){
+        return BindingBuilder.bind(createDLQueue()).to(createDLExchange());
     }
 
     @Bean
