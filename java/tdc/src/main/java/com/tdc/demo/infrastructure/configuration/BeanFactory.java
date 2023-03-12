@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory.ConfirmType;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -87,6 +88,8 @@ public class BeanFactory {
         factory.setUsername(username);
         factory.setPassword(password);
         factory.setPort(port);
+        factory.setPublisherConfirmType(ConfirmType.SIMPLE);
+        factory.setPublisherReturns(true);
         return factory;
     }
 
@@ -105,6 +108,9 @@ public class BeanFactory {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(createConverter());
         template.setUsePublisherConnection(true);
+        template.setConfirmCallback((correlation, ack, reason) -> {
+            System.out.println("Received " + (ack ? "ack." : "nack."));
+        });
         return template;
     }
 
